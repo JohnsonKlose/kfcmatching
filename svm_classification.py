@@ -11,7 +11,7 @@ conn = psycopg2.connect(database='scarp', user='postgres', password='86732629jj'
                             port='5432')
 cur = conn.cursor()
 
-cur.execute("SELECT * FROM public.\"MATCHRESULT\"")
+cur.execute("SELECT * FROM public.\"MATCHRESULT_IMPROVE\"")
 matchResult = cur.fetchall()
 
 df = pd.DataFrame(list(matchResult))
@@ -43,13 +43,13 @@ clf_origin = svm.SVC(kernel='linear')
 clf_origin.fit(X, y)
 print "------fit end------"
 
-xx = np.linspace(0.35, 0.85)
+xx = np.linspace(0.32, 0.85)
 w = clf.coef_[0]
 a = -w[0] / w[1]
 yy = a * xx - clf.intercept_[0] / w[1]
 print a, clf.intercept_[0] / w[1]
 
-xx_origin = np.linspace(0.25, 0.75)
+xx_origin = np.linspace(0.15, 0.65)
 w_orgin = clf_origin.coef_[0]
 a_origin = -w_orgin[0] / w_orgin[1]
 yy_origin = a * xx_origin - clf_origin.intercept_[0] / w_orgin[1]
@@ -60,4 +60,5 @@ plt.plot(xx_origin, yy_origin, 'k--', label='no weights')
 plt.scatter(right_x, right_y, c='r')
 plt.scatter(wrong_x, wrong_y)
 
+plt.legend()
 plt.show()

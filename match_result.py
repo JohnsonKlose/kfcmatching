@@ -6,8 +6,7 @@ from coordsimilarity.coordtransform import *
 from coordsimilarity.model import coordmodeling
 from wordsimilarity.model import wordmodeling
 
-conn = psycopg2.connect(database='scarp', user='postgres', password='86732629jj', host='123.206.102.193',
-                            port='5432')
+conn = psycopg2.connect(database='scarp', user='postgres', password='86732629jj', host='123.206.102.193', port='5432')
 cur = conn.cursor()
 
 cur.execute("SELECT * FROM public.\"BAIDUKFC\"")
@@ -56,13 +55,13 @@ if __name__ == "__main__":
 
         for k in range(0, len(amaprows)):
             value = 1
-            if wordsimilarity_rating[k][1] < 0.5:
+            if wordsimilarity_rating[k][1] < 0.3:
                 value = 0
             elif coordsimilarity_list[k] < 0.5:
                 value = 0
 
             cur.execute(
-                """insert into "MATCHRESULT" (firstid, firstname, secondid, secondname, coordsimilarity, wordsimilarity, value)
+                """insert into "MATCHRESULT_IMPROVE" (firstid, firstname, secondid, secondname, coordsimilarity, wordsimilarity, value)
                 VALUES (%(firstid)s, %(firstname)s, %(secondid)s, %(secondname)s, %(coordsimilarity)s, %(wordsimilarity)s, %(value)s)""",
                 {
                     'firstid': str(bmap_id),

@@ -8,7 +8,7 @@ conn = psycopg2.connect(database='scarp', user='postgres', password='86732629jj'
                             port='5432')
 cur = conn.cursor()
 
-cur.execute("SELECT * FROM public.\"MATCHRESULT\"")
+cur.execute("SELECT * FROM public.\"MATCHRESULT_IMPROVE\"")
 matchResult = cur.fetchall()
 
 df = pd.DataFrame(list(matchResult))
