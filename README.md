@@ -39,13 +39,6 @@
         ```
         x_pi = 3.14159265358979324 * 3000.0 / 180.0
         def bd09togcj02(bd_lon, bd_lat):
-            """
-            百度坐标系(BD-09)转火星坐标系(GCJ-02)
-            百度——>谷歌、高德
-            :param bd_lat:百度坐标纬度
-            :param bd_lon:百度坐标经度
-            :return:转换后的坐标列表形式
-            """
             x = bd_lon - 0.0065
             y = bd_lat - 0.006
             z = math.sqrt(x * x + y * y) - 0.00002 * math.sin(y * x_pi)
@@ -59,9 +52,6 @@
         ```
         threshold = 0.01381770
         def coordmodeling(coord1, coord2):
-            """
-            计算空间相似性的方法
-            """
             distance = math.sqrt((float(coord1[0])-float(coord2[0]))**2 + (float(coord1[1])-float(coord2[1]))**2)
             if distance >= threshold:
                 return 0
@@ -77,14 +67,10 @@
         ```
         import jieba.posseg as pseg
         import codecs
-        # 这里是停止词文件的地址，可替换成自己的停止词文件
         stopword_file = "/Users/yifengjiao/PycharmProjects/scrapDemo/dbcomments/stopwords.txt"
         stopwords = codecs.open(stopword_file, 'r', encoding='utf8').readlines()
         stopwords = [w.strip() for w in stopwords]
         stop_flag = ['x', 'c', 'u', 'd', 'p', 't', 'uj', 'm', 'f', 'r']
-        """
-        分词并去停止词
-        """
         def cutwords(text):
             result = []
             words = pseg.cut(text)
@@ -95,20 +81,13 @@
         ```  
     2.     
         分词完成后，根据分词的结果，建立词袋模型。词袋模型是将分词结果的词频通过向量表示。例如：  
-        
-        麦当劳（哈西万达店）南岗区中兴大道168号哈西万达广场步行街1069
-        
-        这样一个文本，分词后的结果是
-        
-        ['麦当劳', '哈西', '万达', '店', '南岗区', '中兴', '大道', '哈西', '万达', '广场', '步行街']
-        
-        对应建立词袋模型的结果为
-        
-        [(0, 1), (1, 2), (2, 2), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)]
-        
+        麦当劳（哈西万达店）南岗区中兴大道168号哈西万达广场步行街1069  
+        这样一个文本，分词后的结果是  
+        ['麦当劳', '哈西', '万达', '店', '南岗区', '中兴', '大道', '哈西', '万达', '广场', '步行街']  
+        对应建立词袋模型的结果为  
+        [(0, 1), (1, 2), (2, 2), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)]  
         具体实现如下：  
         ```
-        # 构建词袋模型
         dictionary = corpora.Dictionary(corpus)
         doc_vectors = [dictionary.doc2bow(text) for text in corpus]
         ```
