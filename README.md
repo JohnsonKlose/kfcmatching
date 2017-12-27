@@ -2,13 +2,13 @@
 此项目以百度地图和高德地图中肯德基门店数据为基础，建立两组数据的相似性计算方法，通过相似性计算结果找出百度和高德地图中表示同一店铺的数据，同时运用SVM和Logistic Regression的方法，构建自动化筛选匹配结果的机器学习模型。
 ## 数据准备
 - **数据获取：**  
-    通过抓包抓取百度地图和高德地图肯德基门店数据，数据包括门店名称、门店地址、所在区域、门店标签、地理坐标等内容，具体爬虫方法请移步[https://github.com/JohnsonKlose/kfcscrape](https://github.com/JohnsonKlose/kfcscrape)  
+    通过抓包抓取百度地图和高德地图肯德基门店数据，数据包括门店名称、门店地址、所在区域、门店标签、地理坐标等内容，具体爬虫方法请移步[https://github.com/JohnsonKlose/kfcscrape](https://github.com/JohnsonKlose/kfcscrape)。  
 - **数据清洗：**  
     获取数据后，查看到数据中有很多是肯德基甜品站、停车场或卫生间，因此做一个简单的数据清洗，去除掉这些我们不需要的数据。同时再针对个别数据做一些调整，例如把门店名称中包含“KFC”的内容全部替换为“肯德基”等。  
     下面是做数据清洗时判断门店名称是否符合我们需要的函数，返回的是布尔值：  
     ```
-    def iskfc(text):
-        if "洗手间" in text:
+	def iskfc(text):
+		if "洗手间" in text:
             return False
         if "宅急送" in text:
             return False
@@ -20,22 +20,21 @@
             return False
         else:
             return True
-    ```  
+	```  
     **Tips:** 数据存储在数据库中，完全可以通过SQL在数据库中操作完成数据清洗工作，也更加方便快捷。  
     
 ## 相似性计算
-一条百度地图的肯德基门店数据和一条高德地图的肯德基门店数据相匹配，我们可以通过计算相似度的定量方法来判断两条数据是否是可以匹配的相同门店。相似度计算共包括空间相似性和语义相似性两部分，下面分别对空间相似性和语义相似性的计算方法做详细的描述：
+一条百度地图的肯德基门店数据和一条高德地图的肯德基门店数据相匹配，我们可以通过计算相似度的定量方法来判断两条数据是否是可以匹配的相同门店。相似度计算共包括空间相似性和语义相似性两部分，下面分别对空间相似性和语义相似性的计算方法做详细的描述：  
+
 - **空间相似性**  
     空间相似性描述的是两条数据坐标相距的距离远近。具体方法如下：  
-    1.
-        百度地图数据爬取的坐标是形如{dipointx:1322465885,dipointy:374594834}这样的数据，这其实是墨卡托投影下的平面坐标数据，为了方便进行坐标距离计算，我们把这样的坐标通过百度地图JavaScript API提供的方法转换成经纬度坐标。转换方法如下所示：  
+    1.	百度地图数据爬取的坐标是形如{dipointx:1322465885,dipointy:374594834}这样的数据，这其实是墨卡托投影下的平面坐标数据，为了方便进行坐标距离计算，我们把这样的坐标通过百度地图JavaScript API提供的方法转换成经纬度坐标。转换方法如下所示：
         ```
         var projection =new BMap.MercatorProjection();
         var point = projection.pointToLngLat(new BMap.Pixel(x,y))
-        ```
-        详细的转换方法请移步[https://github.com/JohnsonKlose/mercatorprojection](https://github.com/JohnsonKlose/mercatorprojection)
-    2.
-        需要注意的是，通过上一步的平面坐标向经纬度坐标的转换，百度地图坐标数据的坐标系是bd09坐标系(百度自己对经纬度的加密算法)，而高德地图坐标数据的坐标系是gcj02坐标系(中国国家测绘局制订的地理信息系统的坐标系统)，因此还需要把这两份不同坐标系的经纬度坐标数据统一坐标系。[coordtransform.py](https://github.com/JohnsonKlose/kfcmatching/blob/master/coordsimilarity/coordtransform.py)文件中包含了多种坐标系的转换方法，本项目运用bd09转换gcj02的方法，统一将百度地图坐标数据转换为高德地图坐标数据，转换方法如下所示：  
+		```  
+		详细的转换方法请移步[https://github.com/JohnsonKlose/mercatorprojection](https://github.com/JohnsonKlose/mercatorprojection)
+    2.	需要注意的是，通过上一步的平面坐标向经纬度坐标的转换，百度地图坐标数据的坐标系是bd09坐标系(百度自己对经纬度的加密算法)，而高德地图坐标数据的坐标系是gcj02坐标系(中国国家测绘局制订的地理信息系统的坐标系统)，因此还需要把这两份不同坐标系的经纬度坐标数据统一坐标系。[coordtransform.py](https://github.com/JohnsonKlose/kfcmatching/blob/master/coordsimilarity/coordtransform.py)文件中包含了多种坐标系的转换方法，本项目运用bd09转换gcj02的方法，统一将百度地图坐标数据转换为高德地图坐标数据，转换方法如下所示：  
         ```
         x_pi = 3.14159265358979324 * 3000.0 / 180.0
         def bd09togcj02(bd_lon, bd_lat):
@@ -46,9 +45,8 @@
             gg_lng = z * math.cos(theta)
             gg_lat = z * math.sin(theta)
             return [gg_lng, gg_lat]
-        ```
-    3.  
-        计算空间相似性的基本思路是距离越近得分越高，距离越远得分越低，距离高于某一阈值则全部为0。计算函数如下所示：  
+		```  
+    3.	计算空间相似性的基本思路是距离越近得分越高，距离越远得分越低，距离高于某一阈值则全部为0。计算函数如下所示：  
         ```
         threshold = 0.01381770
         def coordmodeling(coord1, coord2):
@@ -57,13 +55,12 @@
                 return 0
             else:
                 return 1 - distance/threshold
-        ```  
+		```   
         最后可以得到一个归一化的相似性结果，取值范围在0到1之间。  
         
 - **语义相似性：**  
     语义相似性描述的是两条数据属性内容的相似性程度，本项目选择地址信息作为语义特征，通过给予jieba和gensim库构建文本相似性计算模型来计算两条数据之间的语义相似性，具体方法如下：  
-    1. 
-        自然语言处理首先要做的就是分词，这里使用最常见的结巴分词。分词做完之后还需要去停止词，去除标点符号、连词、助词等词性的词，同时再去除属于停止词库中的词，具体方法如下：  
+    1.	自然语言处理首先要做的就是分词，这里使用最常见的结巴分词。分词做完之后还需要去停止词，去除标点符号、连词、助词等词性的词，同时再去除属于停止词库中的词，具体方法如下：    
         ```
         import jieba.posseg as pseg
         import codecs
@@ -79,8 +76,7 @@
                     result.append(word)
             return result
         ```  
-    2.     
-        分词完成后，根据分词的结果，建立词袋模型。词袋模型是将分词结果的词频通过向量表示。例如：  
+    2.	分词完成后，根据分词的结果，建立词袋模型。词袋模型是将分词结果的词频通过向量表示。例如：  
         麦当劳（哈西万达店）南岗区中兴大道168号哈西万达广场步行街1069  
         这样一个文本，分词后的结果是  
         ['麦当劳', '哈西', '万达', '店', '南岗区', '中兴', '大道', '哈西', '万达', '广场', '步行街']  
@@ -89,10 +85,9 @@
         具体实现如下：  
         ```
         dictionary = corpora.Dictionary(corpus)
-        doc_vectors = [dictionary.doc2bow(text) for text in corpus]
-        ```
-    3.  
-        光有词袋模型还是不够的，通过TF-IDF模型，对不同的词引入不同的权重。TF表示词频，IDF表示逆文档频率，即一个词在文本中所出现的频率倒数，表达的意思是一个词在某文本中出现的越多，在其他文本中出现的越少，则这个词能很好地反映这篇文本的内容，权重就越大。  
+		doc_vectors = [dictionary.doc2bow(text) for text in corpus]
+        ```  
+    3.	光有词袋模型还是不够的，通过TF-IDF模型，对不同的词引入不同的权重。TF表示词频，IDF表示逆文档频率，即一个词在文本中所出现的频率倒数，表达的意思是一个词在某文本中出现的越多，在其他文本中出现的越少，则这个词能很好地反映这篇文本的内容，权重就越大。  
         TF-IDF模型的结果是与词袋模型相同维度的向量，只是把词频换成了对应TF*IDF的值。  
         ![词频TF](http://oswrmk9hd.bkt.clouddn.com/TF.png)  
         ![逆文档频率](http://oswrmk9hd.bkt.clouddn.com/IDF.png)  
@@ -100,7 +95,7 @@
         ```
         tfidf = models.TfidfModel(doc_vectors)
         tfidf_vectors = tfidf[doc_vectors]
-        ```
+        ```  
         通过文本相似性模型计算，最后可以得到一个0到1的语义相似性结果，用于判断两条数据的地址内容相似度程度高低。  
         
 - **匹配结果计算：**  
@@ -117,7 +112,7 @@
     ```
     clf = svm.SVC(kernel='linear', class_weight={1:5})
     clf.fit(X, y)
-    ```  
+    ```    
     kernel是选择核函数，这里解决线性问题因此选择linear，class_weight是为了解决数据不平衡问题，即正例反例数量不一致。给数量少的类设置更大的惩罚因子，可以一定程度消除数据不平衡带来的结果偏斜现象。  
     SVM训练得出的分类线性函数如下图所示，同时配上未加class_weight参数所得的分类平面以对比优化效果。  
     ![svm_classification](http://oswrmk9hd.bkt.clouddn.com/svm_classification.png)
@@ -127,10 +122,10 @@
     ```
     regr_optimize = linear_model.LogisticRegression(class_weight={1:5})
     regr_origin.fit(X, y)
-    ```  
+    ```    
     LR训练得到的分类线性函数如下图所示，同样也展示提供class_weight参数和未提供class_weight参数两个模型学习的结果对比。  
     ![lr_classification](http://oswrmk9hd.bkt.clouddn.com/lr_classification.png)  
-    **Tips:** Logistic Regression网络上很多人译为“逻辑回归”，但其实跟“逻辑”一点关系都没有，loic才可以译为“逻辑”。周志华老师将Logistic Regression译为“对数几率回归”我认为是相对准确的译法。  
+    **Tips:** Logistic Regression网络上很多人译为“逻辑回归”，但其实跟“逻辑”一点关系都没有，logic才可以译为“逻辑”。周志华老师将Logistic Regression译为“对数几率回归”我认为是相对准确的译法。  
     
 ## 展望
 - 在计算语义相似性的过程中，出现了一些成功匹配但语义相似度很低的情况，考虑有几种情况造成：第一可能是不同数据源对于门店地址的语义表达不同；第二可能是分词的结果本身就不是很好，造成计算相似性的结果较差；第三可能是语义内容较少，只加入了地址信息，造成结果随机性提升。
