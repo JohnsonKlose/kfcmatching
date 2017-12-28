@@ -117,7 +117,7 @@
     SVM训练得出的分类线性函数如下图所示，同时配上未加class_weight参数所得的分类平面以对比优化效果。  
     ![svm_classification](http://oswrmk9hd.bkt.clouddn.com/svm_classification.png)
     
-- 对数几率回归(Logistic Regression)
+- 对数几率回归(Logistic Regression)  
     Logistic Regression虽然名字是回归，但本质是一个分类器，具体概念这里就不赘述了，具体可以参考周志华教授《机器学习》一书第3章第3节的内容，这里我们只需要知道和SVM一样，通过对数几率回归模型的学习，我们也可以学得一个线性函数可以分割未匹配和匹配成功两类数据。具体实现如下：  
     ```
     regr_optimize = linear_model.LogisticRegression(class_weight={1:5})
